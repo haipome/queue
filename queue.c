@@ -2,7 +2,7 @@
  * Description: A variable length circular queue, support single process or
  *              thread write and single process or thread read.
  *              Support use file as storage.
- *     History: yang@haipo.me, 2013/00/00, create
+ *     History: yang@haipo.me, 2013/06/08, create
  */
 
 
