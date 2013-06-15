@@ -228,21 +228,23 @@ int queue_push(queue_t *queue, void *data, uint32_t size)
 
 static void *alloc_read_buf(queue_t *queue, uint32_t size)
 {
-    if (queue->read_buf == NULL)
+    if (queue->read_buf == NULL || queue->read_buf_size < size)
     {
-        queue->read_buf = malloc(size);
-        if (queue->read_buf == NULL)
+        void  *buf = queue->read_buf;
+        size_t buf_size = queue->read_buf_size;
+
+        if (buf == NULL)
+            buf_size = 1;
+
+        while (buf_size < size)
+            buf_size *= 2;
+
+        buf = realloc(buf, buf_size);
+        if (buf == NULL)
             return NULL;
 
-        queue->read_buf_size = size;
-    }
-    else if (size > queue->read_buf_size)
-    {
-        queue->read_buf = realloc(queue->read_buf, size);
-        if (queue->read_buf == NULL)
-            return NULL;
-
-        queue->read_buf_size = size;
+        queue->read_buf = buf;
+        queue->read_buf_size = buf_size;
     }
 
     return queue->read_buf;
