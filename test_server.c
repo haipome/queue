@@ -10,7 +10,7 @@
 int main()
 {
     queue_t queue;
-    if (queue_init(&queue, 10000, 1024 * 1024, "test.queue", 0) < 0)
+    if (queue_init(&queue, "test", 10000, 1024 * 1024, "test.queue", 0) < 0)
         error(EXIT_FAILURE, errno, "queue_init fail");
 
     int i;

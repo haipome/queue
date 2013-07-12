@@ -19,6 +19,7 @@ typedef struct
 
 /*
  * pragma:
+ *      name         : used to distinguish between different queue
  *      shm_key      : if not 0 use share memory, else use malloc
  *      mem_size     : size of memory cache
  *      reserve_file : if not NULL, write data wo file when memory is full
@@ -27,7 +28,7 @@ typedef struct
  *      <  0: error
  *      == 0: success
  */
-int queue_init(queue_t *queue, key_t shm_key,
+int queue_init(queue_t *queue, char *name, key_t shm_key,
         uint32_t mem_size, char *reserve_file, uint64_t file_max_size);
 
 /*

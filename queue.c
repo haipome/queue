@@ -30,6 +30,7 @@
 struct queue_head
 {
     uint32_t magic;
+    char     name[128];
 
     uint64_t shm_key;
     uint32_t mem_size;
@@ -71,7 +72,7 @@ static int get_shm(key_t key, size_t size, void **addr)
     return -1;
 }
 
-int queue_init(queue_t *queue, key_t shm_key,
+int queue_init(queue_t *queue, char *name, key_t shm_key,
         uint32_t mem_size, char *reserve_file, uint64_t file_max_size)
 {
     if (!queue || !mem_size)
@@ -100,6 +101,13 @@ int queue_init(queue_t *queue, key_t shm_key,
 
     if (old_shm == false)
     {
+        if (name)
+        {
+            if (strlen(name) >= sizeof(head->name))
+                return -3;
+            strcpy((char *)head->name, name);
+        }
+
         head->magic    = MAGIC_NUM;
         head->shm_key  = shm_key;
         head->mem_size = mem_size;
@@ -107,13 +115,21 @@ int queue_init(queue_t *queue, key_t shm_key,
         if (reserve_file)
         {
             if (strlen(reserve_file) >= sizeof(head->file))
-                return -3;
+                return -4;
             strcpy((char *)head->file, reserve_file);
 
             remove((char *)head->file);
             errno = 0;
 
             head->file_max_size = file_max_size;
+        }
+    }
+    else
+    {
+        if ((head->name[0] && name == NULL) || \
+                (name && strcmp(name, (char *)head->name) != 0))
+        {
+            return -5;
         }
     }
 
@@ -197,7 +213,7 @@ int queue_push(queue_t *queue, void *data, uint32_t size)
     volatile struct queue_head *head = queue->memory;
     assert(head->magic == MAGIC_NUM);
 
-    if ((head->mem_size - head->mem_use) < size)
+    if ((head->mem_size - head->mem_use) < (sizeof(size) + size))
     {
         if (head->file[0] && write_file(queue, data, size) >= 0)
             return 0;
