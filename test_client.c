@@ -10,7 +10,7 @@
 int main()
 {
     queue_t queue;
-    if (queue_init(&queue, "test", 10000, 1024 * 1024, "test.queue", 0) < 0)
+    if (queue_init(&queue, 10000, 1024 * 1024, "test.queue", 0) < 0)
         error(EXIT_FAILURE, errno, "queue_init fail");
 
     char path[100];
@@ -19,29 +19,20 @@ int main()
     FILE *fp = fopen(path, "w+");
     if (fp == NULL)
         error(EXIT_FAILURE, errno, "open %s fail", path);
-
-    while (1)
-    {
+    while (1) {
         void *p;
         uint32_t len;
-
         int ret = queue_pop(&queue, &p, &len);
-
-        if (ret >= 0)
-        {
+        if (ret > 0) {
             fprintf(fp, "%s\n", (char *)p);
             fflush(fp);
-        }
-        /*
-        else
-        {
-            printf("fail, %m\n");
-
+        } else if (ret < 0) {
+            fprintf(stderr, "queue_pop fail: %d\n", ret);
+            break;
+        } else {
             break;
         }
-        */
     }
-
     fclose(fp);
 
     queue_fini(&queue);
